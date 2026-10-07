@@ -86,14 +86,14 @@ def muzero_policy(
           jax.nn.softmax(root.prior_logits),
           dirichlet_fraction=dirichlet_fraction,
           dirichlet_alpha=dirichlet_alpha))
-  root = root.replace(
+  root = root.replace(  # pyrefly: ignore[missing-attribute]
       prior_logits=_mask_invalid_actions(noisy_logits, invalid_actions))
 
   # Running the search.
   interior_action_selection_fn = functools.partial(
       action_selection.muzero_action_selection,
-      pb_c_base=pb_c_base,
-      pb_c_init=pb_c_init,
+      pb_c_base=pb_c_base,  # pyrefly: ignore[bad-argument-type]
+      pb_c_init=pb_c_init,  # pyrefly: ignore[bad-argument-type]
       qtransform=qtransform)
   root_action_selection_fn = functools.partial(
       interior_action_selection_fn,
@@ -179,7 +179,7 @@ def gumbel_muzero_policy(
     search tree.
   """
   # Masking invalid actions.
-  root = root.replace(
+  root = root.replace(  # pyrefly: ignore[missing-attribute]
       prior_logits=_mask_invalid_actions(root.prior_logits, invalid_actions))
 
   # Generating Gumbel.
@@ -224,8 +224,8 @@ def gumbel_muzero_policy(
   # a smaller number of valid actions.
   considered_visit = jnp.max(summary.visit_counts, axis=-1, keepdims=True)
   # The completed_qvalues include imputed values for unvisited actions.
-  completed_qvalues = jax.vmap(qtransform, in_axes=[0, None])(  # pytype: disable=wrong-arg-types  # numpy-scalars  # pylint: disable=line-too-long
-      search_tree, search_tree.ROOT_INDEX)
+  completed_qvalues = jax.vmap(qtransform, in_axes=[0, None])(  # numpy-scalars  # pylint: disable=line-too-long
+      search_tree, search_tree.ROOT_INDEX)  # pyrefly: ignore[bad-argument-type]
   to_argmax = seq_halving.score_considered(
       considered_visit, gumbel, root.prior_logits, completed_qvalues,
       summary.visit_counts)
@@ -429,7 +429,7 @@ def stochastic_muzero_policy(
           dirichlet_fraction=dirichlet_fraction,
           dirichlet_alpha=dirichlet_alpha))
 
-  root = root.replace(
+  root = root.replace(  # pyrefly: ignore[missing-attribute]
       prior_logits=_mask_invalid_actions(noisy_logits, invalid_actions))
 
   # construct a dummy afterstate embedding
@@ -439,7 +439,7 @@ def stochastic_muzero_policy(
       params, rng_key, dummy_action, root.embedding)
   num_chance_outcomes = dummy_output.chance_logits.shape[-1]
 
-  root = root.replace(
+  root = root.replace(  # pyrefly: ignore[missing-attribute]
       # pad action logits with num_chance_outcomes so dim is A + C
       prior_logits=jnp.concatenate([
           root.prior_logits,
@@ -466,15 +466,17 @@ def stochastic_muzero_policy(
 
   interior_decision_node_selection_fn = functools.partial(
       action_selection.muzero_action_selection,
-      pb_c_base=pb_c_base,
-      pb_c_init=pb_c_init,
+      pb_c_base=pb_c_base,  # pyrefly: ignore[bad-argument-type]
+      pb_c_init=pb_c_init,  # pyrefly: ignore[bad-argument-type]
       qtransform=qtransform)
 
   interior_action_selection_fn = _make_stochastic_action_selection_fn(
       interior_decision_node_selection_fn, num_actions)
 
   root_action_selection_fn = functools.partial(
-      interior_action_selection_fn, depth=0)
+      interior_action_selection_fn,
+      depth=0,  # pyrefly: ignore[unexpected-keyword]
+  )
 
   search_tree = search.instantiate_tree_from_root(
         root, num_simulations+1,
@@ -640,7 +642,7 @@ def _mask_tree(tree: search.Tree, num_actions: int, mode: str) -> search.Tree:
     else:
       raise ValueError(f'Unknown mode: {mode}.')
 
-  return tree.replace(
+  return tree.replace(  # pyrefly: ignore[missing-attribute]
       children_index=_take_slice(tree.children_index),
       children_prior_logits=_take_slice(tree.children_prior_logits),
       children_visits=_take_slice(tree.children_visits),
@@ -662,7 +664,8 @@ def _make_stochastic_action_selection_fn(
       tree: search.Tree,
       node_index: chex.Array,
   ) -> chex.Array:
-    num_chance = tree.children_visits[node_index]
+    num_chance = tree.children_visits[node_index]  # pyrefly: ignore[bad-index]
+    # pyrefly: ignore[bad-index]
     chance_logits = tree.children_prior_logits[node_index]
     prob_chance = jax.nn.softmax(chance_logits)
     argmax_chance = jnp.argmax(prob_chance / (num_chance + 1), axis=-1).astype(

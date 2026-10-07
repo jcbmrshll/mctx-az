@@ -88,6 +88,7 @@ def search(
     next_node_index = jnp.where(unvisited,
                                 tree.next_node_index, next_node_index)
     tree = expand(
+        # pyrefly: ignore[bad-argument-type]
         params, expand_key, tree, recurrent_fn, parent_index,
         action, next_node_index)
     # if next_node_index goes out of bounds (i.e. no room left for new nodes)
@@ -151,36 +152,35 @@ def simulate(
     rng_key, action_selection_key = jax.random.split(state.rng_key)
     action = action_selection_fn(action_selection_key, tree, node_index,
                                  state.depth)
+    # pyrefly: ignore[bad-index]
     next_node_index = tree.children_index[node_index, action]
     # The returned action will be visited.
     depth = state.depth + 1
     is_before_depth_cutoff = depth < max_depth
     is_visited = next_node_index != Tree.UNVISITED
     is_continuing = jnp.logical_and(is_visited, is_before_depth_cutoff)
-    return _SimulationState(  # pytype: disable=wrong-arg-types  # jax-types
+    return _SimulationState(
         rng_key=rng_key,
         node_index=node_index,
-        action=action,
-        next_node_index=next_node_index,
+        action=action,  # pyrefly: ignore[bad-argument-type]
+        next_node_index=next_node_index,  # pyrefly: ignore[bad-argument-type]
         depth=depth,
-        is_continuing=is_continuing)
+        is_continuing=is_continuing)  # pyrefly: ignore[bad-argument-type]
 
   node_index = jnp.array(Tree.ROOT_INDEX, dtype=jnp.int32)
   depth = jnp.zeros((), dtype=tree.children_prior_logits.dtype)
-  # pytype: disable=wrong-arg-types  # jnp-type
   initial_state = _SimulationState(
       rng_key=rng_key,
       node_index=tree.NO_PARENT,
       action=tree.NO_PARENT,
-      next_node_index=node_index,
-      depth=depth,
-      is_continuing=jnp.array(True))
-  # pytype: enable=wrong-arg-types
+      next_node_index=node_index,  # pyrefly: ignore[bad-argument-type]
+      depth=depth,  # pyrefly: ignore[bad-argument-type]
+      is_continuing=jnp.array(True))  # pyrefly: ignore[bad-argument-type]
   end_state = jax.lax.while_loop(cond_fun, body_fun, initial_state)
 
   # Returning a node with a selected action.
   # The action can be already visited, if the max_depth is reached.
-  return end_state.node_index, end_state.action
+  return end_state.node_index, end_state.action  # pyrefly: ignore[bad-return]
 
 
 def expand(
@@ -233,7 +233,7 @@ def expand(
                               tree.UNVISITED,
                               next_node_index)
   # Return updated tree topology.
-  return tree.replace(
+  return tree.replace(  # pyrefly: ignore[missing-attribute]
       children_index=batch_update(
           tree.children_index, next_node_index_check_oob, parent_index, action),
       children_rewards=batch_update(
@@ -287,6 +287,7 @@ def backward(
     return tree, leaf_value, parent
 
   leaf_index = jnp.asarray(leaf_index, dtype=jnp.int32)
+  # pyrefly: ignore[bad-index]
   loop_state = (tree, tree.node_values[leaf_index], leaf_index)
   tree, _, _ = jax.lax.while_loop(cond_fun, body_fun, loop_state)
   return tree
@@ -325,6 +326,7 @@ def update_tree_node(
   chex.assert_shape(prior_logits, (batch_size, tree.num_actions))
 
   # When using max_depth, a leaf can be expanded multiple times.
+  # pyrefly: ignore[bad-index]
   new_visit = tree.node_visits[batch_range, node_index] + 1
   updates = dict(  # pylint: disable=use-dict-literal
       children_prior_logits=batch_update(
@@ -339,7 +341,7 @@ def update_tree_node(
           lambda t, s: batch_update(t, s, node_index),
           tree.embeddings, embedding))
 
-  return tree.replace(**updates)
+  return tree.replace(**updates)  # pyrefly: ignore[missing-attribute]
 
 
 def instantiate_tree_from_root(

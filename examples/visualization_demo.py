@@ -52,7 +52,7 @@ def convert_tree_to_graph(
   chex.assert_rank(tree.node_values, 2)
   batch_size = tree.node_values.shape[0]
   if action_labels is None:
-    action_labels = range(tree.num_actions)
+    action_labels = range(tree.num_actions)  # pyrefly: ignore[bad-assignment]
   elif len(action_labels) != tree.num_actions:
     raise ValueError(
         f"action_labels {action_labels} has the wrong number of actions "
@@ -60,6 +60,7 @@ def convert_tree_to_graph(
         f"Expecting {tree.num_actions}.")
 
   def node_to_str(node_i, reward=0, discount=1):
+    # pyrefly: ignore[bad-index]
     return (f"{node_i}\n"
             f"Reward: {reward:.2f}\n"
             f"Discount: {discount:.2f}\n"
@@ -68,9 +69,10 @@ def convert_tree_to_graph(
 
   def edge_to_str(node_i, a_i):
     node_index = jnp.full([batch_size], node_i)
-    probs = jax.nn.softmax(tree.children_prior_logits[batch_index, node_i])
+    probs = jax.nn.softmax(tree.children_prior_logits[batch_index, node_i])  # pyrefly: ignore[bad-index]
+    # pyrefly: ignore[unsupported-operation]
     return (f"{action_labels[a_i]}\n"
-            f"Q: {tree.qvalues(node_index)[batch_index, a_i]:.2f}\n"  # pytype: disable=unsupported-operands  # always-use-return-annotations
+            f"Q: {tree.qvalues(node_index)[batch_index, a_i]:.2f}\n"
             f"p: {probs[a_i]:.2f}\n")
 
   graph = pygraphviz.AGraph(directed=True)
@@ -81,14 +83,14 @@ def convert_tree_to_graph(
   for node_i in range(tree.num_simulations):
     for a_i in range(tree.num_actions):
       # Index of children, or -1 if not expanded
-      children_i = tree.children_index[batch_index, node_i, a_i]
+      children_i = tree.children_index[batch_index, node_i, a_i]  # pyrefly: ignore[bad-index]
       if children_i >= 0:
         graph.add_node(
             children_i,
             label=node_to_str(
                 node_i=children_i,
-                reward=tree.children_rewards[batch_index, node_i, a_i],
-                discount=tree.children_discounts[batch_index, node_i, a_i]),
+                reward=tree.children_rewards[batch_index, node_i, a_i],  # pyrefly: ignore[bad-index]
+                discount=tree.children_discounts[batch_index, node_i, a_i]),  # pyrefly: ignore[bad-index]
             color="red")
         graph.add_edge(node_i, children_i, label=edge_to_str(node_i, a_i))
 
@@ -166,8 +168,8 @@ def _make_batched_env_model(
   root_state = 0
   root = mctx.RootFnOutput(
       prior_logits=jnp.full([batch_size, num_actions],
-                            prior_logits[root_state]),
-      value=jnp.full([batch_size], values[root_state]),
+                            prior_logits[root_state]),  # pyrefly: ignore[bad-index]
+      value=jnp.full([batch_size], values[root_state]),  # pyrefly: ignore[bad-index]
       # The embedding will hold the state index.
       embedding=jnp.zeros([batch_size], dtype=jnp.int32),
   )

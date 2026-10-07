@@ -16,6 +16,7 @@
 # pylint: disable=use-dict-literal
 import functools
 import json
+import os
 
 import chex
 import jax
@@ -27,6 +28,8 @@ from absl.testing import absltest, parameterized
 import mctx
 
 jax.config.update("jax_threefry_partitionable", False)
+
+_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test_data")
 
 
 def _prepare_root(batch_size, num_actions):
@@ -113,9 +116,11 @@ def tree_to_pytree(tree: mctx.Tree, batch_i: int = 0):
     for a_i in range(tree.num_actions):
       prior = children_prior_probs[batch_i, node_i, a_i]
       # Index of children, or -1 if not expanded
-      child_i = int(tree.children_index[batch_i, node_i, a_i])  # pyrefly: ignore[bad-index]
+      # pyrefly: ignore[bad-index]
+      child_i = int(tree.children_index[batch_i, node_i, a_i])
       if child_i >= 0:
-        reward = tree.children_rewards[batch_i, node_i, a_i]  # pyrefly: ignore[bad-index]
+        # pyrefly: ignore[bad-index]
+        reward = tree.children_rewards[batch_i, node_i, a_i]
         child = _create_pynode(
             tree, batch_i, child_i, prior=prior, action=a_i, reward=reward)
         nodes[child_i] = child
@@ -168,13 +173,13 @@ class TreeTest(parameterized.TestCase):
   # the number of parameter configurations passed to test_tree.
   # pylint: disable=line-too-long
   MUZERO_TREES = [("muzero_norescale",
-          "./mctx/_src/tests/test_data/muzero_tree.json"),
+          os.path.join(_TEST_DATA_DIR, "muzero_tree.json")),
           ("muzero_qtransform",
-          "./mctx/_src/tests/test_data/muzero_qtransform_tree.json")]
+          os.path.join(_TEST_DATA_DIR, "muzero_qtransform_tree.json"))]
   GUMBEL_MUZERO_TREES = [("gumbel_muzero_norescale",
-          "./mctx/_src/tests/test_data/gumbel_muzero_tree.json"),
+          os.path.join(_TEST_DATA_DIR, "gumbel_muzero_tree.json")),
           ("gumbel_muzero_reward",
-          "./mctx/_src/tests/test_data/gumbel_muzero_reward_tree.json")]
+          os.path.join(_TEST_DATA_DIR, "gumbel_muzero_reward_tree.json"))]
   TREES = MUZERO_TREES + GUMBEL_MUZERO_TREES
   # pylint: enable=line-too-long
 

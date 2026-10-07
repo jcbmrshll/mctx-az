@@ -3,14 +3,17 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "mctx"
+name = "mctx-az"
 dynamic = ["version"]
-description = "Monte Carlo tree search in JAX."
+description = "Monte Carlo tree search in JAX, with AlphaZero-style subtree persistence."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
 authors = [
     {name = "Google DeepMind", email = "mctx-dev@google.com"},
+]
+maintainers = [
+    {name = "Jacob Marshall", email = "lowrollr.dev@gmail.com"},
 ]
 keywords = [
     "jax",
@@ -38,8 +41,13 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://github.com/google-deepmind/mctx"
-repository = "https://github.com/google-deepmind/mctx"
+homepage = "https://github.com/jcbmrshll/mctx-az"
+repository = "https://github.com/jcbmrshll/mctx-az"
+upstream = "https://github.com/google-deepmind/mctx"
+
+# The distribution is named mctx-az, but the import name stays `mctx`.
+[tool.flit.module]
+name = "mctx"
 
 [project.optional-dependencies]
 test = [

@@ -43,8 +43,8 @@ pylint --rcfile=.pylintrc `find mctx -name '*_test.py' | xargs` -d W0212,R0917 |
 # Build the package.
 python3 -m uv pip install build
 python3 -m build
-python3 -m pip wheel --no-deps dist/mctx-*.tar.gz
-python3 -m pip install mctx-*.whl
+python3 -m pip wheel --no-deps dist/mctx_az-*.tar.gz
+python3 -m pip install mctx_az-*.whl
 
 # Check types with pytype.
 # Note: pytype does not support 3.12 as of 23.11.23
@@ -64,7 +64,7 @@ python3 -m pytest --numprocesses auto --pyargs mctx
 cd ..
 
 # Cleanup.
-rm -rf _testing mctx-*.whl dist/
+rm -rf _testing mctx_az-*.whl dist/
 
 set +u
 deactivate
